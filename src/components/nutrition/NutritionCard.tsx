@@ -1,12 +1,6 @@
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-
-interface NutritionData {
-  calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-}
+import { NutritionData } from '@/types/nutrition';
 
 interface NutritionCardProps {
   title: string;
@@ -44,13 +38,48 @@ export const NutritionCard = ({ title, nutrition, goals, className }: NutritionC
       goal: goals?.fat || 75,
       color: 'fat',
       unit: 'g'
-    }
-  ];
+    },
+    ...(nutrition.fiber !== undefined && nutrition.fiber > 0 ? [{
+      name: 'Fiber',
+      value: nutrition.fiber,
+      goal: goals?.fiber || 25,
+      color: 'fiber',
+      unit: 'g'
+    }] : []),
+    ...(nutrition.sugar !== undefined && nutrition.sugar > 0 ? [{
+      name: 'Sugar',
+      value: nutrition.sugar,
+      goal: goals?.sugar || 50,
+      color: 'sugar',
+      unit: 'g'
+    }] : []),
+    ...(nutrition.sodium !== undefined && nutrition.sodium > 0 ? [{
+      name: 'Sodium',
+      value: nutrition.sodium,
+      goal: goals?.sodium || 2300,
+      color: 'sodium',
+      unit: 'mg'
+    }] : []),
+    ...(nutrition.cholesterol !== undefined && nutrition.cholesterol > 0 ? [{
+      name: 'Cholesterol',
+      value: nutrition.cholesterol,
+      goal: goals?.cholesterol || 300,
+      color: 'cholesterol',
+      unit: 'mg'
+    }] : []),
+    ...(nutrition.saturatedFat !== undefined && nutrition.saturatedFat > 0 ? [{
+      name: 'Sat Fat',
+      value: nutrition.saturatedFat,
+      goal: goals?.saturatedFat || 20,
+      color: 'saturatedFat',
+      unit: 'g'
+    }] : [])
+  ].filter(Boolean);
 
   return (
     <Card className={`p-6 bg-gradient-card shadow-soft ${className}`}>
       <h3 className="text-lg font-semibold mb-4">{title}</h3>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         {nutrients.map((nutrient) => {
           const percentage = goals ? Math.min((nutrient.value / nutrient.goal) * 100, 100) : 0;
           

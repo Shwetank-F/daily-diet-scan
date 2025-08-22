@@ -7,12 +7,7 @@ import { Camera, Upload, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Tesseract from 'tesseract.js';
 
-interface NutritionData {
-  calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-}
+import { NutritionData } from '@/types/nutrition';
 
 interface FoodScannerProps {
   onNutritionExtracted: (data: NutritionData) => void;
@@ -25,20 +20,38 @@ export const FoodScanner = ({ onNutritionExtracted }: FoodScannerProps) => {
   const { toast } = useToast();
 
   const extractNutritionFromText = (text: string): NutritionData => {
-    const nutrition = { calories: 0, protein: 0, carbs: 0, fat: 0 };
+    // Clean and normalize the text for better parsing
+    const cleanText = text.replace(/[^\w\s\.\-:\/\%]/g, ' ').replace(/\s+/g, ' ').toLowerCase();
     
-    // Patterns to match nutrition values
+    const nutrition: NutritionData = { calories: 0, protein: 0, carbs: 0, fat: 0 };
+    
+    // Enhanced patterns to match nutrition values
     const patterns = {
       calories: /(?:calories|energy|kcal)[\s:]*(\d+(?:\.\d+)?)/i,
       protein: /protein[\s:]*(\d+(?:\.\d+)?)\s*g/i,
-      carbs: /(?:carbohydrate|carbs)[\s:]*(\d+(?:\.\d+)?)\s*g/i,
-      fat: /(?:total\s+fat|fat)[\s:]*(\d+(?:\.\d+)?)\s*g/i
+      carbs: /(?:total\s*carbohydrate|carbohydrate|carbs)[\s:]*(\d+(?:\.\d+)?)\s*g/i,
+      fat: /(?:total\s*fat|total fat|fat)[\s:]*(\d+(?:\.\d+)?)\s*g/i,
+      saturatedFat: /(?:saturated\s*fat|sat\s*fat)[\s:]*(\d+(?:\.\d+)?)\s*g/i,
+      transFat: /(?:trans\s*fat|trans fat)[\s:]*(\d+(?:\.\d+)?)\s*g/i,
+      cholesterol: /cholesterol[\s:]*(\d+(?:\.\d+)?)\s*mg/i,
+      sodium: /sodium[\s:]*(\d+(?:\.\d+)?)\s*mg/i,
+      fiber: /(?:dietary\s*fiber|fiber)[\s:]*(\d+(?:\.\d+)?)\s*g/i,
+      sugar: /(?:total\s*sugars|sugars)[\s:]*(\d+(?:\.\d+)?)\s*g/i,
+      addedSugar: /(?:added\s*sugars|includes\s*\d+g\s*added\s*sugars)[\s:]*(\d+(?:\.\d+)?)\s*g/i,
+      vitaminD: /(?:vitamin\s*d|vit\s*d)[\s:]*(\d+(?:\.\d+)?)\s*(?:mcg|µg)/i,
+      calcium: /calcium[\s:]*(\d+(?:\.\d+)?)\s*mg/i,
+      iron: /iron[\s:]*(\d+(?:\.\d+)?)\s*mg/i,
+      potassium: /potassium[\s:]*(\d+(?:\.\d+)?)\s*mg/i
     };
 
+    // Extract each nutrient
     for (const [nutrient, pattern] of Object.entries(patterns)) {
-      const match = text.match(pattern);
-      if (match) {
-        nutrition[nutrient as keyof NutritionData] = parseFloat(match[1]);
+      const match = cleanText.match(pattern);
+      if (match && match[1]) {
+        const value = parseFloat(match[1]);
+        if (!isNaN(value) && value >= 0) {
+          nutrition[nutrient as keyof NutritionData] = value;
+        }
       }
     }
 
@@ -63,7 +76,10 @@ export const FoodScanner = ({ onNutritionExtracted }: FoodScannerProps) => {
       
       const nutrition = extractNutritionFromText(text);
       
-      if (nutrition.calories > 0 || nutrition.protein > 0 || nutrition.carbs > 0 || nutrition.fat > 0) {
+      // Check if any nutrition data was found
+      const hasNutritionData = Object.values(nutrition).some(value => value > 0);
+      
+      if (hasNutritionData) {
         onNutritionExtracted(nutrition);
         toast({
           title: "Success!",
@@ -146,9 +162,11 @@ export const FoodScanner = ({ onNutritionExtracted }: FoodScannerProps) => {
         />
 
         {extractedText && (
-          <div className="mt-4 p-3 bg-muted rounded-lg text-xs text-left">
-            <Label className="text-sm font-medium">Extracted Text:</Label>
-            <p className="text-muted-foreground mt-1">{extractedText.slice(0, 200)}...</p>
+          <div className="mt-4 p-4 bg-muted rounded-lg text-sm text-left max-h-40 overflow-y-auto">
+            <Label className="text-sm font-medium mb-2 block">Extracted Text:</Label>
+            <pre className="text-muted-foreground text-xs whitespace-pre-wrap font-mono">
+              {extractedText.length > 500 ? extractedText.slice(0, 500) + '...' : extractedText}
+            </pre>
           </div>
         )}
       </div>
