@@ -61,7 +61,21 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				/* Nutrition-specific colors */
+				calories: 'hsl(var(--calories))',
+				protein: 'hsl(var(--protein))',
+				carbs: 'hsl(var(--carbs))',
+				fat: 'hsl(var(--fat))'
+			},
+			backgroundImage: {
+				'gradient-primary': 'var(--gradient-primary)',
+				'gradient-energy': 'var(--gradient-energy)',
+				'gradient-card': 'var(--gradient-card)'
+			},
+			boxShadow: {
+				'soft': 'var(--shadow-soft)',
+				'medium': 'var(--shadow-medium)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
